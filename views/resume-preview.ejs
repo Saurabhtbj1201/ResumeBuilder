@@ -1,0 +1,93 @@
+<%- include('partials/header', { title: 'Resume Preview - ' + resume.basicDetails.fullName }) %>
+
+<div class="resume-preview-container">
+    <h1><%= resume.basicDetails.fullName %></h1>
+    <p>
+        <%= resume.contact.email %> | <%= resume.contact.phone %> <br>
+        <% if (resume.basicDetails.dob) { %>
+            DOB: <%= new Date(resume.basicDetails.dob).toLocaleDateString() %> <br>
+        <% } %>
+        <% if (resume.basicDetails.currentJobTitle) { %>
+            <%= resume.basicDetails.currentJobTitle %> <% if (resume.basicDetails.currentCompany) { %> at <%= resume.basicDetails.currentCompany %> <% } %>
+        <% } %>
+    </p>
+
+    <% if (resume.address && (resume.address.addressLine1 || resume.address.city)) { %>
+        <p>
+            <%= resume.address.addressLine1 %><br>
+            <%= resume.address.city %>, <%= resume.address.state %> <%= resume.address.postalCode %><br>
+            <%= resume.address.country %>
+        </p>
+    <% } %>
+
+    <% if (resume.socialLinks && (resume.socialLinks.linkedin || resume.socialLinks.github || resume.socialLinks.portfolio)) { %>
+        <p>
+            <% if (resume.socialLinks.linkedin) { %><a href="<%= resume.socialLinks.linkedin %>" target="_blank">LinkedIn</a> | <% } %>
+            <% if (resume.socialLinks.github) { %><a href="<%= resume.socialLinks.github %>" target="_blank">GitHub</a> | <% } %>
+            <% if (resume.socialLinks.portfolio) { %><a href="<%= resume.socialLinks.portfolio %>" target="_blank">Portfolio</a><% } %>
+            <% if (resume.socialLinks.instagram) { %> | <a href="<%= resume.socialLinks.instagram %>" target="_blank">Instagram</a><% } %>
+        </p>
+    <% } %>
+
+    <% if (resume.summary) { %>
+        <h2>Summary</h2>
+        <p><%= resume.summary %></p>
+    <% } %>
+
+    <% if (resume.experience && resume.experience.length > 0 && resume.experience[0].company) { %>
+        <h2>Experience</h2>
+        <% resume.experience.forEach(exp => { %>
+            <% if (exp.company) { %>
+            <div>
+                <h3><%= exp.role %> at <%= exp.company %></h3>
+                <p><em><%= exp.duration %></em></p>
+                <p><%= exp.description %></p>
+            </div>
+            <% } %>
+        <% }); %>
+    <% } %>
+    
+    <% if (resume.projects && resume.projects.length > 0 && resume.projects[0].title) { %>
+        <h2>Projects</h2>
+        <% resume.projects.forEach(proj => { %>
+            <% if (proj.title) { %>
+            <div>
+                <h3><%= proj.title %> <% if (proj.status) { %>(<%= proj.status %>)<% } %></h3>
+                <% if (proj.techStack && proj.techStack.length > 0) { %>
+                    <p><strong>Tech Stack:</strong> <%= proj.techStack.join(', ') %></p>
+                <% } %>
+                <p><%= proj.description %></p>
+            </div>
+            <% } %>
+        <% }); %>
+    <% } %>
+
+    <% if (resume.skills && resume.skills.length > 0) { %>
+        <h2>Skills</h2>
+        <p><%= resume.skills.join(', ') %></p>
+    <% } %>
+
+    <% if (resume.education && resume.education.length > 0 && resume.education[0].degree) { %>
+        <h2>Education</h2>
+        <% resume.education.forEach(edu => { %>
+            <% if (edu.degree) { %>
+            <div>
+                <h3><%= edu.degree %> - <%= edu.institution %></h3>
+                <p>Year: <%= edu.year %> | CGPA/Percentage: <%= edu.cgpaOrPercentage %></p>
+            </div>
+            <% } %>
+        <% }); %>
+    <% } %>
+
+    <% if (resume.hobbies && resume.hobbies.length > 0) { %>
+        <h2>Hobbies</h2>
+        <p><%= resume.hobbies.join(', ') %></p>
+    <% } %>
+
+    <div class="actions">
+        <a href="/build" class="btn">Edit (Build New)</a>
+        <a href="/resume/<%= resume._id %>/download" class="btn btn-primary">Download PDF (Placeholder)</a>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

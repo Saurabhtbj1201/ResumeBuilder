@@ -11,7 +11,7 @@ services:
     # You might need to add the standard Node.js buildpack if it's not automatically included.
     buildpacks:
       - https://github.com/jontewks/puppeteer-heroku-buildpack 
-      # - heroku/nodejs # Add this if Render requires specifying the Node.js buildpack too
+      # - heroku/nodejs # May be needed if the above doesn't include Node.js environment setup
     buildCommand: "npm install" 
     startCommand: "npm start" 
     healthCheckPath: / 
@@ -24,10 +24,14 @@ services:
       # The buildpack is responsible for providing Chromium.
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
         value: "true"
-      # PUPPETEER_EXECUTABLE_PATH is usually not needed when a buildpack provides Chrome,
-      # as it's often installed in a standard system path.
-      # If issues persist, you might need to find the path the buildpack installs Chrome to
-      # and set PUPPETEER_EXECUTABLE_PATH to that (e.g., /usr/bin/google-chrome-stable).
+      # Set PUPPETEER_EXECUTABLE_PATH to where the buildpack installs Chrome.
+      # Common paths are /usr/bin/google-chrome-stable or /app/.apt/usr/bin/google-chrome-stable
+      # Check your build logs from Render to confirm the exact path after the buildpack runs.
+      - key: PUPPETEER_EXECUTABLE_PATH 
+        value: /usr/bin/google-chrome-stable # A common path for buildpack-installed Chrome
+      # Remove PUPPETEER_CACHE_DIR as it's not used by puppeteer-core when skipping download
+      # - key: PUPPETEER_CACHE_DIR 
+      #   value: /opt/render/.cache/puppeteer
     buildFilter:
       paths:
         - "models/**"

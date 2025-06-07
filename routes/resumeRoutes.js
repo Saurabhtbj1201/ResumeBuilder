@@ -135,10 +135,8 @@ router.get('/resume/:id/download', async (req, res) => {
     console.log(`[PDF Generation] Started for resume ID: ${req.params.id}`);
     let browser = null; 
     try {
-        // Use env var or fallback to standard Windows Chrome install
-        const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH
-            || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-        console.log(`[PDF Generation] Using executablePath: ${executablePathToUse}`);
+        // Use env var if set (e.g. on Render); otherwise let Puppeteer use its bundled Chromium
+        const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH;
 
         const isTestMode = req.query.test === 'true';
         let htmlContent;
@@ -166,19 +164,23 @@ router.get('/resume/:id/download', async (req, res) => {
         console.log(`  PUPPETEER_EXECUTABLE_PATH (env): ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
         // PUPPETEER_CACHE_DIR is not relevant for puppeteer-core in this setup
         
-        browser = await puppeteer.launch({
-            headless: true, 
+        // Build launch options and only include executablePath if provided
+        const launchOptions = {
+            headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage', 
+                '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
                 '--disable-gpu'
-            ],
-            executablePath: executablePathToUse
-        });
+            ]
+        };
+        if (executablePathToUse) {
+            launchOptions.executablePath = executablePathToUse;
+        }
+        browser = await puppeteer.launch(launchOptions);
 
         if (!browser) {
             console.error('[PDF Generation] Failed to launch Puppeteer browser. Browser object is null.');

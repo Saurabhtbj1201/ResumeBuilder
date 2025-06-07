@@ -14,12 +14,17 @@ services:
       - key: MONGODB_URI
         # Set the actual MONGODB_URI value in the Render dashboard's Environment section
         value: YOUR_MONGODB_ATLAS_CONNECTION_STRING_GOES_HERE 
-      # Allow Puppeteer to download its own Chromium.
-      # Remove the PUPPETEER_SKIP_CHROMIUM_DOWNLOAD line or set its value to false.
-      # - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD 
-      #   value: true # This line should be removed or value set to false
+      # PUPPETEER_SKIP_CHROMIUM_DOWNLOAD:
+      # Ensure this key is NOT present or its value is 'false'.
+      # If absent, Puppeteer defaults to downloading Chromium.
+      # We are intentionally omitting it to allow download.
       - key: PUPPETEER_CACHE_DIR # Explicitly set the cache directory for Puppeteer
         value: /opt/render/.cache/puppeteer
+      # Provide an explicit path to the Chrome executable.
+      # This assumes Puppeteer downloads Chromium into a 'chrome-linux' subdirectory within the cache.
+      # This is a common structure for Puppeteer's self-managed downloads on Linux.
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /opt/render/.cache/puppeteer/chrome-linux/chrome
     buildFilter:
       paths:
         - "models/**"

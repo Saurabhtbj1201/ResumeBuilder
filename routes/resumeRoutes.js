@@ -4,6 +4,8 @@ const Resume = require('../models/Resume');
 const puppeteer = require('puppeteer'); // For PDF generation
 const path = require('path');
 const ejs = require('ejs'); // To render EJS template to string
+// const fs = require('fs').promises; // For temporary file writing (advanced debugging)
+// const os = require('os'); // For temporary file writing (advanced debugging)
 
 // Serve the landing page
 router.get('/', (req, res) => {
@@ -130,50 +132,158 @@ router.get('/resume/:id', async (req, res) => {
 
 // PDF download route
 router.get('/resume/:id/download', async (req, res) => {
+    console.log(`[PDF Generation] Started for resume ID: ${req.params.id}`);
+    let browser = null; 
+    // let tempPdfPath = null; // For temporary file writing (advanced debugging)
     try {
-        const resume = await Resume.findById(req.params.id);
-        if (!resume) {
-            return res.status(404).send('Resume not found');
+        const isTestMode = req.query.test === 'true';
+        let htmlContent;
+        let resumeDataForFileName = { basicDetails: { fullName: 'test-user' } }; 
+
+        if (isTestMode) {
+            console.log('[PDF Generation] Test mode activated. Using minimal HTML.');
+            htmlContent = `<!DOCTYPE html><html><head><title>Test PDF</title></head><body><h1>Hello World - Test PDF</h1><p>This is a test PDF document generated at ${new Date().toISOString()}.</p><h2>Environment:</h2><p>PUPPETEER_EXECUTABLE_PATH (env): ${process.env.PUPPETEER_EXECUTABLE_PATH || 'Not Set'}</p><p>PUPPETEER_CACHE_DIR (env): ${process.env.PUPPETEER_CACHE_DIR || 'Not Set'}</p></body></html>`;
+        } else {
+            const resume = await Resume.findById(req.params.id);
+            if (!resume) {
+                console.error(`[PDF Generation] Resume not found for ID: ${req.params.id}`);
+                return res.status(404).send('Resume not found');
+            }
+            resumeDataForFileName = resume; // Use actual resume data for filename
+            console.log('[PDF Generation] Resume data fetched.');
+            htmlContent = await ejs.renderFile(
+                path.join(__dirname, '../views/resume-pdf-template.ejs'), 
+                { resume: resume, baseUrl: `${req.protocol}://${req.get('host')}` }
+            );
         }
+        console.log('[PDF Generation] HTML content prepared/rendered.');
 
-        // Render an EJS template to an HTML string
-        // We'll create 'resume-pdf-template.ejs' for this
-        const htmlContent = await ejs.renderFile(
-            path.join(__dirname, '../views/resume-pdf-template.ejs'), 
-            { resume: resume, baseUrl: `${req.protocol}://${req.get('host')}` } // Pass resume data and baseUrl for static assets
-        );
+        console.log('[PDF Generation] Puppeteer environment variables:');
+        console.log(`  PUPPETEER_EXECUTABLE_PATH (env): ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
+        console.log(`  PUPPETEER_CACHE_DIR (env): ${process.env.PUPPETEER_CACHE_DIR}`);
+        
+        let executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH;
+        if (!executablePathToUse) {
+            console.log('[PDF Generation] PUPPETEER_EXECUTABLE_PATH env var not set, trying puppeteer.executablePath().');
+            try {
+                executablePathToUse = puppeteer.executablePath();
+            } catch (e) {
+                console.error('[PDF Generation] Error calling puppeteer.executablePath():', e);
+                // Proceed without it, Puppeteer might still find Chrome if it's in a standard location within cache
+            }
+        }
+        console.log(`[PDF Generation] Effective executablePath for Puppeteer: ${executablePathToUse || 'Default (Puppeteer will try to find)'}`);
 
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'] // Important for running in some environments
+        console.log('[PDF Generation] Launching Puppeteer browser...');
+        browser = await puppeteer.launch({
+            headless: 'new', // Use the new headless mode
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage', 
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--disable-gpu' // Re-enabled, generally good for headless
+            ],
+            executablePath: executablePathToUse // Pass the determined path
         });
-        const page = await browser.newPage();
-        
-        // Set content and wait for images/styles if any are loaded via network
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' }); 
-        
-        // Emulate screen media type for better print layout consistency
-        await page.emulateMediaType('screen'); 
 
-        const pdfBuffer = await page.pdf({
+        if (!browser) {
+            console.error('[PDF Generation] Failed to launch Puppeteer browser. Browser object is null.');
+            return res.status(500).send('Error generating PDF: Could not initialize browser.');
+        }
+        console.log('[PDF Generation] Puppeteer browser launched.');
+        
+        const page = await browser.newPage();
+        if (!page) {
+            console.error('[PDF Generation] Failed to create new page. Page object is null.');
+            if (browser) await browser.close(); // Ensure browser is closed
+            return res.status(500).send('Error generating PDF: Could not create new page.');
+        }
+        console.log('[PDF Generation] Puppeteer page created.');
+        
+        await page.setDefaultNavigationTimeout(60000); 
+
+        await page.setContent(htmlContent, { waitUntil: 'networkidle0' }); 
+        console.log('[PDF Generation] Page content set.');
+        
+        console.log('[PDF Generation] Generating PDF buffer...');
+        const pdfOptions = {
             format: 'A4',
-            printBackground: true, // Crucial for including CSS background colors/images
-            margin: {
+            printBackground: true,
+            timeout: 60000 
+        };
+        if (!isTestMode) { // Only add margins for the actual resume, not the minimal test
+            pdfOptions.margin = {
                 top: '20mm',
                 right: '20mm',
                 bottom: '20mm',
                 left: '20mm'
-            }
-        });
+            };
+        } else {
+            console.log('[PDF Generation] Test mode: Generating PDF without margins.');
+        }
 
-        await browser.close();
+        const pdfBuffer = await page.pdf(pdfOptions);
+        console.log(`[PDF Generation] PDF buffer generated. Size: ${pdfBuffer.length} bytes.`);
+
+        if (!pdfBuffer || pdfBuffer.length === 0) {
+            console.error('[PDF Generation] Error: Generated PDF buffer is null or empty.');
+            return res.status(500).send('Error generating PDF: Empty or null PDF buffer.');
+        }
+
+        // Advanced Debugging: Write to temp file (Uncomment if Render allows and issue persists)
+        /*
+        if (isTestMode) {
+            try {
+                tempPdfPath = path.join(os.tmpdir(), `test-pdf-${Date.now()}.pdf`);
+                await fs.writeFile(tempPdfPath, pdfBuffer);
+                console.log(`[PDF Generation] Test PDF written to temporary file: ${tempPdfPath}`);
+                // At this point, you'd ideally have a way to inspect this file on the server
+                // or try to serve it differently, but Render's free tier might not allow easy inspection.
+            } catch (writeError) {
+                console.error(`[PDF Generation] Error writing test PDF to temporary file: ${writeError}`);
+            }
+        }
+        */
+
+        const resumeFileName = isTestMode ? 
+            'test-resume.pdf' : 
+            `resume-${resumeDataForFileName.basicDetails.fullName.replace(/\s+/g, '_') || 'unknown'}-${req.params.id}.pdf`;
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=resume-${resume.basicDetails.fullName.replace(/\s+/g, '_')}-${resume._id}.pdf`);
-        res.send(pdfBuffer);
+        res.setHeader('Content-Length', pdfBuffer.length); 
+        res.setHeader('Content-Disposition', `attachment; filename=${resumeFileName}`);
+        
+        res.write(pdfBuffer);
+        res.end();
+        console.log('[PDF Generation] PDF sent to client using res.write/res.end.');
 
     } catch (error) {
-        console.error('Error generating PDF:', error);
-        res.status(500).send('Error generating PDF. ' + error.message);
+        console.error('[PDF Generation] Error in PDF generation process:', error);
+        if (!res.headersSent) {
+            res.status(500).send('Error generating PDF. ' + error.message);
+        } else {
+            console.error('[PDF Generation] Headers already sent, could not send error response to client.');
+        }
+    } finally {
+        if (browser) {
+            console.log('[PDF Generation] Closing Puppeteer browser...');
+            await browser.close();
+            console.log('[PDF Generation] Puppeteer browser closed.');
+        }
+        // Advanced Debugging: Clean up temp file (Uncomment if using temp file)
+        /*
+        if (tempPdfPath) {
+            try {
+                await fs.unlink(tempPdfPath);
+                console.log(`[PDF Generation] Deleted temporary PDF file: ${tempPdfPath}`);
+            } catch (unlinkError) {
+                console.error(`[PDF Generation] Error deleting temporary PDF file: ${unlinkError}`);
+            }
+        }
+        */
     }
 });
 

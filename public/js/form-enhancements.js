@@ -2,16 +2,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function addEntry(containerId, entryClassName, buttonId, entryTitlePrefix) {
         const container = document.getElementById(containerId);
         const addButton = document.getElementById(buttonId);
-        let entryCounter = container.getElementsByClassName(entryClassName).length;
-
+        
+        // Only proceed if container and addButton exist on the current page
         if (!container || !addButton) {
-            console.warn(`Container or button not found for ${containerId}`);
+            // console.warn(`Container or button not found for ${containerId}, skipping addEntry setup.`);
             return;
         }
 
+        let entryCounter = container.getElementsByClassName(entryClassName).length;
+
         const firstEntry = container.querySelector(`.${entryClassName}`);
         if (!firstEntry) {
-            console.warn(`First entry template not found for ${entryClassName}`);
+            console.warn(`First entry template not found for ${entryClassName} in container ${containerId}`);
             return;
         }
 
@@ -46,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
             removeButton.textContent = 'Remove This Entry';
             removeButton.classList.add('btn', 'btn-danger', 'btn-sm', 'remove-entry-btn');
             removeButton.style.marginTop = '10px';
+            removeButton.style.marginBottom = '10px'; // Add some bottom margin
             removeButton.addEventListener('click', function() {
                 newEntry.remove();
                 // Renumber remaining entries if necessary (optional)
@@ -56,7 +59,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    addEntry('experienceContainer', 'experience-entry', 'addExperienceBtn', 'Experience');
-    addEntry('projectsContainer', 'project-entry', 'addProjectBtn', 'Project');
-    addEntry('educationContainer', 'education-entry', 'addEducationBtn', 'Education');
+    // Check if the specific containers exist before trying to set up the "addEntry" functionality
+    if (document.getElementById('experienceContainer')) {
+        addEntry('experienceContainer', 'experience-entry', 'addExperienceBtn', 'Experience');
+    }
+    if (document.getElementById('projectsContainer')) {
+        addEntry('projectsContainer', 'project-entry', 'addProjectBtn', 'Project');
+    }
+    if (document.getElementById('educationContainer')) {
+        addEntry('educationContainer', 'education-entry', 'addEducationBtn', 'Education');
+    }
 });

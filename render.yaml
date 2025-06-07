@@ -12,18 +12,16 @@ services:
       - key: NODE_ENV
         value: production 
       - key: MONGODB_URI
-        # Set the actual MONGODB_URI value in the Render dashboard's Environment section
-        # e.g., value: mongodb+srv://user:pass@cluster.mongodb.net/dbname
-        fromDatabase: # If you created a Render PostgreSQL database and want to link its URI
-          name: your-render-db-name # Replace if using Render DB
-          property: connectionString # Replace if using Render DB
-      # If MONGODB_URI is set directly in Render's dashboard, the fromDatabase block is not needed for Mongo.
-      # For MongoDB Atlas, you'll set MONGODB_URI directly in the dashboard.
-      # Ensure PUPPETEER_SKIP_CHROMIUM_DOWNLOAD is NOT set to true, or is absent.
+        # This should be set in Render's dashboard environment variables
+        # Example: mongodb+srv://user:pass@cluster.mongodb.net/dbname
       - key: PUPPETEER_CACHE_DIR # Puppeteer will download Chromium here
         value: /opt/render/.cache/puppeteer
-      # Do NOT set PUPPETEER_EXECUTABLE_PATH unless letting Puppeteer find it fails.
-      # Puppeteer should find the browser it downloads into PUPPETEER_CACHE_DIR.
+      # Force Puppeteer to use the specific path from the error log.
+      # This is less robust if you update Puppeteer, as the versioned path will change.
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome
+      # Ensure PUPPETEER_SKIP_CHROMIUM_DOWNLOAD is NOT set to true, or is absent,
+      # so Puppeteer attempts to download its browser into the cache dir.
     buildFilter:
       paths:
         - "models/**"

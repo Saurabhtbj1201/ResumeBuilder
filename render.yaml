@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: resume-builder 
+    env: node 
+    plan: free 
+    region: oregon 
+    rootDir: .
+    buildCommand: "npm install" 
+    startCommand: "npm start" 
+    healthCheckPath: / 
+    envVars:
+      - key: NODE_ENV
+        value: production 
+      - key: MONGODB_URI
+        # Set the actual MONGODB_URI value in the Render dashboard's Environment section
+        value: YOUR_MONGODB_ATLAS_CONNECTION_STRING_GOES_HERE 
+      # Allow Puppeteer to download its own Chromium.
+      # Remove the PUPPETEER_SKIP_CHROMIUM_DOWNLOAD line or set its value to false.
+      # - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD 
+      #   value: true # This line should be removed or value set to false
+      - key: PUPPETEER_CACHE_DIR # Explicitly set the cache directory for Puppeteer
+        value: /opt/render/.cache/puppeteer
+    buildFilter:
+      paths:
+        - "models/**"
+        - "public/**"
+        - "routes/**"
+        - "views/**"
+        - "package.json"
+        - "package-lock.json" 
+        - "server.js"
+        - "render.yaml" 
+      ignoredPaths:
+        - "*.md"
+        - ".gitignore"
+        - "docs/**"

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Resume = require('../models/Resume');
-const puppeteer = require('puppeteer-core'); // Use puppeteer-core
+const puppeteer = require('puppeteer'); // Use puppeteer
 const path = require('path');
 const ejs = require('ejs'); // To render EJS template to string
 // const fs = require('fs').promises; // For temporary file writing (advanced debugging)
@@ -135,6 +135,11 @@ router.get('/resume/:id/download', async (req, res) => {
     console.log(`[PDF Generation] Started for resume ID: ${req.params.id}`);
     let browser = null; 
     try {
+        // Use env var or fallback to standard Windows Chrome install
+        const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH
+            || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+        console.log(`[PDF Generation] Using executablePath: ${executablePathToUse}`);
+
         const isTestMode = req.query.test === 'true';
         let htmlContent;
         let resumeDataForFileName = { basicDetails: { fullName: 'test-user' } }; 
@@ -161,16 +166,8 @@ router.get('/resume/:id/download', async (req, res) => {
         console.log(`  PUPPETEER_EXECUTABLE_PATH (env): ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
         // PUPPETEER_CACHE_DIR is not relevant for puppeteer-core in this setup
         
-        // For puppeteer-core with a buildpack, executablePath might be a system path
-        // or Puppeteer might find it automatically if the buildpack sets it up correctly.
-        // We'll let Puppeteer try to find it first. If it fails, we might need to set
-        // PUPPETEER_EXECUTABLE_PATH in render.yaml to where the buildpack installs Chrome.
-        const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH; // Rely on env var if set by buildpack or manually
-        console.log(`[PDF Generation] Attempting to use executablePath: ${executablePathToUse || 'System default (via buildpack)'}`);
-
-        console.log('[PDF Generation] Launching Puppeteer browser...');
         browser = await puppeteer.launch({
-            headless: 'new', 
+            headless: true, 
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -180,7 +177,7 @@ router.get('/resume/:id/download', async (req, res) => {
                 '--no-zygote',
                 '--disable-gpu'
             ],
-            executablePath: executablePathToUse // Pass the path if set, otherwise puppeteer-core tries to find system Chrome
+            executablePath: executablePathToUse
         });
 
         if (!browser) {

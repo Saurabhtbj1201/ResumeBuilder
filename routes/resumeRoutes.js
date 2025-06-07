@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Resume = require('../models/Resume');
-const puppeteer = require('puppeteer'); // For PDF generation
+const puppeteer = require('puppeteer-core'); // Use puppeteer-core
 const path = require('path');
 const ejs = require('ejs'); // To render EJS template to string
 // const fs = require('fs').promises; // For temporary file writing (advanced debugging)
@@ -134,7 +134,6 @@ router.get('/resume/:id', async (req, res) => {
 router.get('/resume/:id/download', async (req, res) => {
     console.log(`[PDF Generation] Started for resume ID: ${req.params.id}`);
     let browser = null; 
-    // let tempPdfPath = null; // For temporary file writing (advanced debugging)
     try {
         const isTestMode = req.query.test === 'true';
         let htmlContent;
@@ -160,23 +159,18 @@ router.get('/resume/:id/download', async (req, res) => {
 
         console.log('[PDF Generation] Puppeteer environment variables:');
         console.log(`  PUPPETEER_EXECUTABLE_PATH (env): ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
-        console.log(`  PUPPETEER_CACHE_DIR (env): ${process.env.PUPPETEER_CACHE_DIR}`);
+        // PUPPETEER_CACHE_DIR is not relevant for puppeteer-core in this setup
         
-        let executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH;
-        if (!executablePathToUse) {
-            console.log('[PDF Generation] PUPPETEER_EXECUTABLE_PATH env var not set, trying puppeteer.executablePath().');
-            try {
-                executablePathToUse = puppeteer.executablePath();
-            } catch (e) {
-                console.error('[PDF Generation] Error calling puppeteer.executablePath():', e);
-                // Proceed without it, Puppeteer might still find Chrome if it's in a standard location within cache
-            }
-        }
-        console.log(`[PDF Generation] Effective executablePath for Puppeteer: ${executablePathToUse || 'Default (Puppeteer will try to find)'}`);
+        // For puppeteer-core with a buildpack, executablePath might be a system path
+        // or Puppeteer might find it automatically if the buildpack sets it up correctly.
+        // We'll let Puppeteer try to find it first. If it fails, we might need to set
+        // PUPPETEER_EXECUTABLE_PATH in render.yaml to where the buildpack installs Chrome.
+        const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH; // Rely on env var if set by buildpack or manually
+        console.log(`[PDF Generation] Attempting to use executablePath: ${executablePathToUse || 'System default (via buildpack)'}`);
 
         console.log('[PDF Generation] Launching Puppeteer browser...');
         browser = await puppeteer.launch({
-            headless: 'new', // Use the new headless mode
+            headless: 'new', 
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -184,9 +178,9 @@ router.get('/resume/:id/download', async (req, res) => {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu' // Re-enabled, generally good for headless
+                '--disable-gpu'
             ],
-            executablePath: executablePathToUse // Pass the determined path
+            executablePath: executablePathToUse // Pass the path if set, otherwise puppeteer-core tries to find system Chrome
         });
 
         if (!browser) {

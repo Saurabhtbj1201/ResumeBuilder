@@ -136,7 +136,7 @@ router.get('/resume/:id/download', async (req, res) => {
     let browser = null; 
     try {
         // Use env var if set (e.g. on Render); otherwise let Puppeteer use its bundled Chromium
-        const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH;
+        // const executablePathToUse = process.env.PUPPETEER_EXECUTABLE_PATH;
 
         const isTestMode = req.query.test === 'true';
         let htmlContent;
@@ -164,7 +164,11 @@ router.get('/resume/:id/download', async (req, res) => {
         console.log(`  PUPPETEER_EXECUTABLE_PATH (env): ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
         // PUPPETEER_CACHE_DIR is not relevant for puppeteer-core in this setup
         
-        // Build launch options and only include executablePath if provided
+        // Prefer env var, else use Render's system Chrome/Chromium path
+        const systemChrome = '/usr/bin/google-chrome-stable';
+        const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || systemChrome;
+
+        // Build launch options and always include executablePath
         const launchOptions = {
             headless: true,
             args: [
@@ -175,17 +179,15 @@ router.get('/resume/:id/download', async (req, res) => {
                 '--no-first-run',
                 '--no-zygote',
                 '--disable-gpu'
-            ]
+            ],
+            executablePath
         };
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        }
 
-        // Try launch, fallback if Puppeteer’s bundle wasn’t installed
+        // Try launch, fallback to no sandbox path if needed
         try {
             browser = await puppeteer.launch(launchOptions);
-        } catch (launchErr) {
-            console.warn('[PDF Generation] launch failed, retrying without executablePath:', launchErr.message);
+        } catch (err) {
+            console.warn('[PDF Generation] launch failed, retrying without executablePath:', err.message);
             delete launchOptions.executablePath;
             browser = await puppeteer.launch(launchOptions);
         }

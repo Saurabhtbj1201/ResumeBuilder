@@ -69,4 +69,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('educationContainer')) {
         addEntry('educationContainer', 'education-entry', 'addEducationBtn', 'Education');
     }
+    if (document.getElementById('certificationContainer')) {
+        addEntry('certificationContainer', 'certification-entry', 'addCertificationBtn', 'Certification');
+    }
+    if (document.getElementById('awardsContainer')) {
+        addEntry('awardsContainer', 'award-entry', 'addAwardBtn', 'Award/Achievement');
+    }
 });

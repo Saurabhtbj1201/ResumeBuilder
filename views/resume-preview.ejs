@@ -79,14 +79,29 @@
         <% }); %>
     <% } %>
 
-    <% if (resume.hobbies && resume.hobbies.length > 0) { %>
-        <h2>Hobbies</h2>
-        <p><%= resume.hobbies.join(', ') %></p>
+    <% if (resume.certifications && resume.certifications.length > 0) { %>
+        <h2>Certifications</h2>
+        <% resume.certifications.forEach(cert => { %>
+            <div>
+                <h3><%= cert.title %></h3>
+                <p>Organization: <%= cert.issuingOrganization %> | Completion Date: <%= cert.completionDate %></p>
+            </div>
+        <% }); %>
+    <% } %>
+
+    <% if (resume.awards && resume.awards.length > 0) { %>
+        <h2>Awards & Achievements</h2>
+        <% resume.awards.forEach(award => { %>
+            <div>
+                <h3><%= award.title %></h3>
+                <p>Organization: <%= award.organization %> | Achieved Date: <%= award.achievedDate %></p>
+            </div>
+        <% }); %>
     <% } %>
 
     <div class="actions">
-        <a href="/build" class="btn">Edit (Build New)</a>
-        <a href="/resume/<%= resume._id %>/download" class="btn btn-primary">Download PDF (Placeholder)</a>
+        <a href="/resume/<%= resume._id %>/edit" class="btn">Edit Resume</a>
+        <a href="/resume/<%= resume._id %>/download" class="btn btn-primary">Download Resume </a>
     </div>
 </div>
 

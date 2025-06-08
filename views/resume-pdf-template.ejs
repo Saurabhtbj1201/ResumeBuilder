@@ -131,6 +131,14 @@
         </div>
         <% } %>
         
+        <% if (resume.skills && resume.skills.length > 0) { %>
+        <div class="section">
+            <h2>Skills</h2>
+            <p class="skills-list"><%= resume.skills.join(', ') %></p>
+        </div>
+        <% } %>
+
+        
         <% if (resume.projects && resume.projects.length > 0 && resume.projects[0].title) { %>
         <div class="section">
             <h2>Projects</h2>
@@ -162,12 +170,25 @@
         </div>
         <% } %>
 
-        <% if (resume.skills && resume.skills.length > 0) { %>
-        <div class="section">
-            <h2>Skills</h2>
-            <p class="skills-list"><%= resume.skills.join(', ') %></p>
-        </div>
-        <% } %>
+            <% if (resume.certifications && resume.certifications.length > 0) { %>
+        <h2>Certifications</h2>
+        <% resume.certifications.forEach(cert => { %>
+            <div>
+                <h3><%= cert.title %></h3>
+                <p>Organization: <%= cert.issuingOrganization %> | Completion Date: <%= cert.completionDate %></p>
+            </div>
+        <% }); %>
+    <% } %>
+
+    <% if (resume.awards && resume.awards.length > 0) { %>
+        <h2>Awards & Achievements</h2>
+        <% resume.awards.forEach(award => { %>
+            <div>
+                <h3><%= award.title %></h3>
+                <p>Organization: <%= award.organization %> | Achieved Date: <%= award.achievedDate %></p>
+            </div>
+        <% }); %>
+    <% } %>
 
         <% if (resume.hobbies && resume.hobbies.length > 0) { %>
         <div class="section">

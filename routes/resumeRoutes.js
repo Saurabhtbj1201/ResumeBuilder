@@ -4,37 +4,15 @@ const Resume = require('../models/Resume');
 const puppeteer = require('puppeteer'); // Use puppeteer
 const path = require('path');
 const ejs = require('ejs'); // To render EJS template to string
-// const fs = require('fs').promises; // For temporary file writing (advanced debugging)
-// const os = require('os'); // For temporary file writing (advanced debugging)
 
 // Serve the landing page
 router.get('/', (req, res) => {
     res.render('index');
 });
 
-// Serve the resume form page (with optional search)
-router.get('/build', async (req, res) => {
-    const { searchName, searchEmail, dobDay, dobMonth, dobYear } = req.query;
-    let resumeToEdit = null;
-    if (searchName && searchEmail && dobDay && dobMonth && dobYear) {
-        // build a Date from the three parts
-        const d = new Date(
-            parseInt(dobYear),
-            parseInt(dobMonth) - 1,
-            parseInt(dobDay)
-        );
-        // define start/end of that day to avoid millisecond mismatches
-        const start = new Date(d); start.setHours(0,0,0,0);
-        const end   = new Date(d); end.setHours(23,59,59,999);
-
-        // case-insensitive fullName and exact email + dob range
-        resumeToEdit = await Resume.findOne({
-            'basicDetails.fullName':  new RegExp('^' + searchName.trim() + '$', 'i'),
-            'contact.email':          searchEmail.trim().toLowerCase(),
-            'basicDetails.dob':       { $gte: start, $lte: end }
-        });
-    }
-    res.render('form', { resumeToEdit });
+// Serve the resume form page
+router.get('/build', (req, res) => {
+    res.render('form');
 });
 
 // Handle resume form submission
@@ -51,6 +29,9 @@ router.post('/submit-resume', async (req, res) => {
             skills, // Comma-separated
             // Education arrays
             eduDegree, eduInstitution, eduYear, eduCgpa,
+            // Certifications and Awards
+            certTitle, certIssuingOrg, certCompletionDate, // Certifications
+            awardTitle, awardOrganization, awardDate, // Awards
             // Address
             addressLine1, city, district, state, country, postalCode,
             // Social Links
@@ -109,6 +90,31 @@ router.post('/submit-resume', async (req, res) => {
             }
         }
 
+        const certifications = [];
+        if (certTitle && Array.isArray(certTitle)) {
+            for (let i = 0; i < certTitle.length; i++) {
+                if (certTitle[i]) {
+                    certifications.push({
+                        title: certTitle[i],
+                        issuingOrganization: certIssuingOrg[i] || '',
+                        completionDate: certCompletionDate[i] || '',
+                    });
+                }
+            }
+        }
+
+        const awards = [];
+        if (awardTitle && Array.isArray(awardTitle)) {
+            for (let i = 0; i < awardTitle.length; i++) {
+                if (awardTitle[i]) {
+                    awards.push({
+                        title: awardTitle[i],
+                        organization: awardOrganization[i] || '',
+                        achievedDate: awardDate[i] || '',
+                    });
+                }
+            }
+        }
 
         const newResume = new Resume({
             basicDetails: { fullName, dob, currentJobTitle, currentCompany },
@@ -121,6 +127,8 @@ router.post('/submit-resume', async (req, res) => {
             address: { addressLine1, city, district, state, country, postalCode },
             socialLinks: { github, linkedin, portfolio, instagram },
             hobbies: hobbies ? hobbies.split(',').map(s => s.trim()) : [],
+            certifications: certifications,
+            awards: awards,
         });
 
         const savedResume = await newResume.save();
@@ -239,9 +247,9 @@ router.get('/resume/:id/download', async (req, res) => {
         if (!isTestMode) { // Only add margins for the actual resume, not the minimal test
             pdfOptions.margin = {
                 top: '20mm',
-                right: '20mm',
-                bottom: '20mm',
-                left: '20mm'
+                right: '10mm',
+                bottom: '10mm',
+                left: '10mm'
             };
         } else {
             console.log('[PDF Generation] Test mode: Generating PDF without margins.');
@@ -306,6 +314,21 @@ router.get('/resume/:id/download', async (req, res) => {
             }
         }
         */
+    }
+});
+
+// Serve the resume form page with pre-filled data for editing
+router.get('/resume/:id/edit', async (req, res) => {
+    try {
+        const resume = await Resume.findById(req.params.id);
+        if (!resume) {
+            return res.status(404).send('Resume not found');
+        }
+        // Render the form with the resume data
+        res.render('form', { resume: resume });
+    } catch (error) {
+        console.error('Error fetching resume for edit:', error);
+        res.status(500).send('Error fetching resume for edit');
     }
 });
 

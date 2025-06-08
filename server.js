@@ -13,8 +13,8 @@ const mongoURI = 'mongodb+srv://saurabhtbj143:lLKjumjOuuyuvTWy@resume.3fizlja.mo
 
 // Connect to MongoDB
 mongoose.connect(mongoURI)
-    .then(() => console.log('MongoDB Connected successfully!'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .then(() => console.log('MongoDB Connected successfully!✅'))
+    .catch(err => console.error('MongoDB connection error:❌', err));
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));

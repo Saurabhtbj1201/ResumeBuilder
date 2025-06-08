@@ -21,6 +21,18 @@ const educationSchema = new mongoose.Schema({
     cgpaOrPercentage: String,
 });
 
+const certificationsSchema = new mongoose.Schema({
+    title: String,
+    issuingOrganization:String,
+    completionDate: String,
+});
+
+const awardsSchema = new mongoose.Schema({
+    title: String,
+    organization: String,
+    achievedDate: String,
+});
+
 const resumeSchema = new mongoose.Schema({
     basicDetails: {
         fullName: { type: String, required: true },
@@ -37,6 +49,8 @@ const resumeSchema = new mongoose.Schema({
     projects: [projectSchema],
     skills: [String],
     education: [educationSchema],
+    certifications: [certificationsSchema],
+    awards: [awardsSchema],
     address: {
         addressLine1: String,
         city: String,

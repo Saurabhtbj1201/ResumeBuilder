@@ -177,11 +177,18 @@ router.get('/resume/:id/download', async (req, res) => {
                 '--disable-gpu'
             ]
         };
-        if (executablePathToUse) {
-            launchOptions.executablePath = executablePathToUse;
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
         }
-        browser = await puppeteer.launch(launchOptions);
 
+        // Try launch, fallback if Puppeteer’s bundle wasn’t installed
+        try {
+            browser = await puppeteer.launch(launchOptions);
+        } catch (launchErr) {
+            console.warn('[PDF Generation] launch failed, retrying without executablePath:', launchErr.message);
+            delete launchOptions.executablePath;
+            browser = await puppeteer.launch(launchOptions);
+        }
         if (!browser) {
             console.error('[PDF Generation] Failed to launch Puppeteer browser. Browser object is null.');
             return res.status(500).send('Error generating PDF: Could not initialize browser.');

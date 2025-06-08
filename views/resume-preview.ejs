@@ -99,6 +99,13 @@
         <% }); %>
     <% } %>
 
+    <% if (resume.hobbies && resume.hobbies.length > 0) { %>
+        <div class="section">
+            <h2>Hobbies</h2>
+            <p class="hobbies-list"><%= resume.hobbies.join(', ') %></p>
+        </div>
+    <% } %>
+
     <div class="actions">
         <a href="/resume/<%= resume._id %>/edit" class="btn">Edit Resume</a>
         <a href="/resume/<%= resume._id %>/download" class="btn btn-primary">Download Resume</a>

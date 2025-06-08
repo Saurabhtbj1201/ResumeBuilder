@@ -1,40 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Resume - <%= resume.basicDetails.fullName %></title>
+    <title>Resume - <%= resume.basicDetails.fullName %>
+    </title>
     <style>
         body {
-            font-family: Arial, sans-serif; /* Common ATS-friendly font */
+            font-family: Arial, sans-serif;
+            /* Common ATS-friendly font */
             line-height: 1.4;
             color: #333;
             margin: 0;
             padding: 0;
-            font-size: 10pt; /* Standard resume font size */
+            font-size: 10pt;
+            /* Standard resume font size */
         }
+
         .resume-container {
-            width: 100%; /* Full width for PDF page */
-            max-width: 180mm; /* Approx A4 content width minus margins */
+            width: 100%;
+            /* Full width for PDF page */
+            max-width: 180mm;
+            /* Approx A4 content width minus margins */
             margin: 0 auto;
         }
+
         h1 {
             font-size: 18pt;
             text-align: center;
             margin-bottom: 5px;
             color: #000;
         }
+
         .contact-info {
             text-align: center;
             font-size: 9pt;
             margin-bottom: 15px;
         }
+
         .contact-info a {
-            color: #0000EE; /* Standard link blue */
+            color: #0000EE;
+            /* Standard link blue */
             text-decoration: none;
         }
+
         .contact-info a:hover {
             text-decoration: underline;
         }
+
         h2 {
             font-size: 14pt;
             color: #222;
@@ -43,98 +56,140 @@
             margin-top: 15px;
             margin-bottom: 8px;
         }
+
         h3 {
             font-size: 11pt;
             color: #333;
             margin-bottom: 2px;
             margin-top: 10px;
         }
-        p, ul {
+
+        p,
+        ul {
             margin-bottom: 5px;
             font-size: 10pt;
         }
+
         ul {
             padding-left: 20px;
             list-style-type: disc;
         }
+
         li {
             margin-bottom: 3px;
         }
+
         .section {
             margin-bottom: 10px;
         }
-        .job-title, .degree-title {
+
+        .job-title,
+        .degree-title {
             font-weight: bold;
         }
-        .company-name, .institution-name {
+
+        .company-name,
+        .institution-name {
             font-style: italic;
         }
+
         .date-range {
             font-style: italic;
             font-size: 9pt;
             color: #555;
         }
+
         .description {
             text-align: justify;
         }
-        .skills-list, .hobbies-list {
+
+        .skills-list,
+        .hobbies-list {
             margin-top: 5px;
         }
+
         /* Ensure full URLs are printed for links if not clickable in PDF */
-        /* a::after { content: " (" attr(href) ")"; font-size: 0.8em; } */ /* Optional: if you want URLs printed */
+        /* a::after { content: " (" attr(href) ")"; font-size: 0.8em; } */
+        /* Optional: if you want URLs printed */
 
         /* If using external CSS via baseUrl, ensure Puppeteer can access it */
         /* For example, if you had a /css/pdf-style.css */
         /* @import url('<%= baseUrl %>/css/pdf-style.css'); */
     </style>
 </head>
+
 <body>
     <div class="resume-container">
-        <h1><%= resume.basicDetails.fullName %></h1>
+        <h1>
+            <%= resume.basicDetails.fullName %>
+        </h1>
         <div class="contact-info">
-            <% if (resume.contact.email) { %><span><%= resume.contact.email %></span><% } %>
-            <% if (resume.contact.phone) { %><span> | <%= resume.contact.phone %></span><% } %>
-            <br>
-            <% if (resume.address && resume.address.city && resume.address.state) { %>
-                <span><%= resume.address.city %>, <%= resume.address.state %></span>
-            <% } %>
-            <% if (resume.socialLinks) { %>
-                <br>
-                <% if (resume.socialLinks.linkedin) { %><a href="<%= resume.socialLinks.linkedin %>">LinkedIn</a><% } %>
-                <% if (resume.socialLinks.github) { %> | <a href="<%= resume.socialLinks.github %>">GitHub</a><% } %>
-                <% if (resume.socialLinks.portfolio) { %> | <a href="<%= resume.socialLinks.portfolio %>">Portfolio</a><% } %>
-            <% } %>
+            <% if (resume.contact.email) { %><span>
+                    <%= resume.contact.email %>
+                </span>
+                <% } %>
+                    <% if (resume.contact.phone) { %><span> | <%= resume.contact.phone %></span>
+                        <% } %>
+                            <br>
+                            <% if (resume.address && resume.address.city && resume.address.state) { %>
+                                <span>
+                                    <%= resume.address.city %>, <%= resume.address.state %>
+                                </span>
+                                <% } %>
+                                    <% if (resume.socialLinks) { %>
+                                        <br>
+                                        <% if (resume.socialLinks.linkedin) { %><a
+                                                href="<%= resume.socialLinks.linkedin %>">LinkedIn</a>
+                                            <% } %>
+                                                <% if (resume.socialLinks.github) { %> | <a
+                                                        href="<%= resume.socialLinks.github %>">GitHub</a>
+                                                    <% } %>
+                                                        <% if (resume.socialLinks.portfolio) { %> | <a
+                                                                href="<%= resume.socialLinks.portfolio %>">Portfolio</a>
+                                                            <% } %>
+                                                                <% } %>
         </div>
 
         <% if (resume.summary) { %>
-        <div class="section">
-            <h2>Summary</h2>
-            <p class="description"><%= resume.summary %></p>
-        </div>
-        <% } %>
+            <div class="section">
+                <h2>Summary</h2>
+                <p class="description">
+                    <%= resume.summary %>
+                </p>
+            </div>
+            <% } %>
 
-        <% if (resume.experience && resume.experience.length > 0 && resume.experience[0].company) { %>
-        <div class="section">
-            <h2>Experience</h2>
-            <% resume.experience.forEach(exp => { %>
-                <% if (exp.company) { %>
-                <div>
-                    <h3><span class="job-title"><%= exp.role %></span> at <span class="company-name"><%= exp.company %></span></h3>
-                    <p class="date-range"><%= exp.duration %></p>
-                    <% if (exp.description) { %>
-                        <p class="description"><%= exp.description %></p>
-                        <!-- If description contains bullet points, you might need to parse and render them as <ul><li> -->
+                <% if (resume.experience && resume.experience.length> 0 && resume.experience[0].company) { %>
+                    <div class="section">
+                        <h2>Experience</h2>
+                        <% resume.experience.forEach(exp=> { %>
+                            <% if (exp.company) { %>
+                                <div>
+                                    <h3><span class="job-title">
+                                            <%= exp.role %>
+                                        </span> at <span class="company-name">
+                                            <%= exp.company %>
+                                        </span></h3>
+                                    <p class="date-range">
+                                        <%= exp.duration %>
+                                    </p>
+                                    <% if (exp.description) { %>
+                                        <p class="description">
+                                            <%= exp.description %>
+                                        </p>
+                                        <!-- If description contains bullet points, you might need to parse and render them as <ul><li> -->
+                                        <% } %>
+                                </div>
+                                <% } %>
+                                    <% }); %>
+                    </div>
                     <% } %>
-                </div>
-                <% } %>
-            <% }); %>
-        </div>
-        <% } %>
-        
-        <% if (resume.skills && resume.skills.length > 0) { %>
-        <div class="section">
-            <h2>Skills</h2>
-            <p class="skills-list"><%= resume.skills.join(', ') %></p>
+
+                        <% if (resume.skills && resume.skills.length> 0) { %>
+                            <div class="section">
+                                <h2>Skills</h2>
+                                <p class="skills-list">
+                                    <%= resume.skills.join(', ') %></p>
         </div>
         <% } %>
 
@@ -147,7 +202,7 @@
                 <div>
                     <h3><span class="job-title"><%= proj.title %></span> <% if (proj.status) { %>(<span class="date-range"><%= proj.status %></span>)<% } %></h3>
                     <% if (proj.techStack && proj.techStack.length > 0) { %>
-                        <p><strong>Tech Stack:</strong> <%= proj.techStack.join(', ') %></p>
+                        <p><strong>Tech Stack:</strong> <%= proj.techStack.join(' , ') %></p>
                     <% } %>
                     <% if (proj.description) { %><p class="description"><%= proj.description %></p><% } %>
                 </div>
@@ -193,7 +248,7 @@
         <% if (resume.hobbies && resume.hobbies.length > 0) { %>
         <div class="section">
             <h2>Hobbies</h2>
-            <p class="hobbies-list"><%= resume.hobbies.join(', ') %></p>
+            <p class="hobbies-list"><%= resume.hobbies.join(' , ') %></p>
         </div>
         <% } %>
     </div>

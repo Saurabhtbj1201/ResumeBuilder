@@ -1,0 +1,193 @@
+<%- include('partials/header', { title: 'Edit Resume - ' + resume.basicDetails.fullName }) %>
+
+<form action="/resume/<%= resume._id %>/update" method="POST" class="resume-form">
+    <h1>Edit Resume</h1>
+    
+    <h2>Basic Details</h2>
+    <label for="fullName">Full Name:</label>
+    <input type="text" id="fullName" name="basicDetails.fullName" value="<%= resume.basicDetails.fullName %>" required>
+    
+    <label>Date of Birth:</label>
+    <div class="dob-container">
+        <select id="dobDay" name="dobDay" required>
+            <option value="">Day</option>
+            <% for(let i = 1; i <= 31; i++) { %>
+                <option value="<%= i %>" <%= resume.basicDetails.dob && new Date(resume.basicDetails.dob).getDate() === i ? 'selected' : '' %>><%= i %></option>
+            <% } %>
+        </select>
+        <select id="dobMonth" name="dobMonth" required>
+            <option value="">Month</option>
+            <% const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; %>
+            <% months.forEach((month, index) => { %>
+                <option value="<%= index + 1 %>" <%= resume.basicDetails.dob && new Date(resume.basicDetails.dob).getMonth() === index ? 'selected' : '' %>><%= month %></option>
+            <% }); %>
+        </select>
+        <select id="dobYear" name="dobYear" required>
+            <option value="">Year</option>
+            <% const currentYear = new Date().getFullYear(); %>
+            <% for(let i = currentYear; i >= currentYear - 100; i--) { %>
+                <option value="<%= i %>" <%= resume.basicDetails.dob && new Date(resume.basicDetails.dob).getFullYear() === i ? 'selected' : '' %>><%= i %></option>
+            <% } %>
+        </select>
+    </div>
+    
+    <label for="currentJobTitle">Current Job Title:</label>
+    <input type="text" id="currentJobTitle" name="basicDetails.currentJobTitle" value="<%= resume.basicDetails.currentJobTitle %>">
+    
+    <label for="currentCompany">Current Company:</label>
+    <input type="text" id="currentCompany" name="basicDetails.currentCompany" value="<%= resume.basicDetails.currentCompany %>">
+
+    <h2>Contact Information</h2>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="contact.email" value="<%= resume.contact.email %>" required>
+    
+    <label for="phone">Phone:</label>
+    <input type="text" id="phone" name="contact.phone" value="<%= resume.contact.phone %>" required>
+
+    <h2>Summary</h2>
+    <label for="summary">Professional Summary:</label>
+    <textarea id="summary" name="summary"><%= resume.summary %></textarea>
+
+    <h2>Experience</h2>
+    <div id="experienceContainer">
+        <% resume.experience.forEach((exp, index) => { %>
+            <div class="experience-entry">
+                <h4>Experience Entry <%= index + 1 %></h4>
+                <label for="expCompany">Company:</label>
+                <input type="text" name="expCompany[]" value="<%= exp.company %>" required>
+                
+                <label for="expRole">Role:</label>
+                <input type="text" name="expRole[]" value="<%= exp.role %>" required>
+                
+                <label for="expDuration">Duration:</label>
+                <input type="text" name="expDuration[]" value="<%= exp.duration %>" required>
+                
+                <label for="expDescription">Description:</label>
+                <textarea name="expDescription[]" rows="3" required><%= exp.description %></textarea>
+            </div>
+        <% }); %>
+    </div>
+    <button type="button" id="addExperienceBtn" class="btn btn-secondary">Add More Experience</button>
+
+    <h2>Projects</h2>
+    <div id="projectsContainer">
+        <% resume.projects.forEach((proj, index) => { %>
+            <div class="project-entry">
+                <h4>Project Entry <%= index + 1 %></h4>
+                <label for="projTitle">Project Title:</label>
+                <input type="text" name="projTitle[]" value="<%= proj.title %>">
+                
+                <label for="projTechStack">Tech Stack:</label>
+                <input type="text" name="projTechStack[]" value="<%= proj.techStack.join(', ') %>">
+                
+                <label for="projDescription">Description:</label>
+                <textarea name="projDescription[]" rows="3"><%= proj.description %></textarea>
+                
+                <label for="projStatus">Status:</label>
+                <input type="text" name="projStatus[]" value="<%= proj.status %>">
+            </div>
+        <% }); %>
+    </div>
+    <button type="button" id="addProjectBtn" class="btn btn-secondary">Add More Projects</button>
+
+    <h2>Skills</h2>
+    <label for="skills">Skills:</label>
+    <input type="text" id="skills" name="skills" value="<%= resume.skills.join(', ') %>">
+
+    <h2>Education</h2>
+    <div id="educationContainer">
+        <% resume.education.forEach((edu, index) => { %>
+            <div class="education-entry">
+                <h4>Education Entry <%= index + 1 %></h4>
+                <label for="eduDegree">Degree:</label>
+                <input type="text" name="eduDegree[]" value="<%= edu.degree %>">
+                
+                <label for="eduInstitution">Institution:</label>
+                <input type="text" name="eduInstitution[]" value="<%= edu.institution %>">
+                
+                <label for="eduYear">Year:</label>
+                <input type="text" name="eduYear[]" value="<%= edu.year %>">
+                
+                <label for="eduCgpa">CGPA/Percentage:</label>
+                <input type="text" name="eduCgpa[]" value="<%= edu.cgpaOrPercentage %>">
+            </div>
+        <% }); %>
+    </div>
+    <button type="button" id="addEducationBtn" class="btn btn-secondary">Add More Education</button>
+
+    <h2>Certifications</h2>
+    <div id="certificationContainer">
+        <% resume.certifications.forEach((cert, index) => { %>
+            <div class="certification-entry">
+                <h4>Certification Entry <%= index + 1 %></h4>
+                <label for="certTitle">Title:</label>
+                <input type="text" name="certTitle[]" value="<%= cert.title %>">
+                
+                <label for="certIssuingOrg">Issuing Organization:</label>
+                <input type="text" name="certIssuingOrg[]" value="<%= cert.issuingOrganization %>">
+                
+                <label for="certCompletionDate">Completion Date:</label>
+                <input type="text" name="certCompletionDate[]" value="<%= cert.completionDate %>">
+            </div>
+        <% }); %>
+    </div>
+    <button type="button" id="addCertificationBtn" class="btn btn-secondary">Add More Certifications</button>
+
+    <h2>Awards</h2>
+    <div id="awardsContainer">
+        <% resume.awards.forEach((award, index) => { %>
+            <div class="award-entry">
+                <h4>Award Entry <%= index + 1 %></h4>
+                <label for="awardTitle">Title:</label>
+                <input type="text" name="awardTitle[]" value="<%= award.title %>">
+                
+                <label for="awardOrganization">Organization:</label>
+                <input type="text" name="awardOrganization[]" value="<%= award.organization %>">
+                
+                <label for="awardDate">Achieved Date:</label>
+                <input type="text" name="awardDate[]" value="<%= award.achievedDate %>">
+            </div>
+        <% }); %>
+    </div>
+    <button type="button" id="addAwardBtn" class="btn btn-secondary">Add More Awards</button>
+
+    <h2>Address</h2>
+    <label for="addressLine1">Address Line 1:</label>
+    <input type="text" id="addressLine1" name="address.addressLine1" value="<%= resume.address.addressLine1 %>">
+    
+    <label for="city">City:</label>
+    <input type="text" id="city" name="address.city" value="<%= resume.address.city %>">
+    
+    <label for="district">District:</label>
+    <input type="text" id="district" name="address.district" value="<%= resume.address.district %>">
+    
+    <label for="state">State:</label>
+    <input type="text" id="state" name="address.state" value="<%= resume.address.state %>">
+    
+    <label for="country">Country:</label>
+    <input type="text" id="country" name="address.country" value="<%= resume.address.country %>">
+    
+    <label for="postalCode">Postal Code:</label>
+    <input type="text" id="postalCode" name="address.postalCode" value="<%= resume.address.postalCode %>">
+
+    <h2>Social Links</h2>
+    <label for="github">GitHub:</label>
+    <input type="url" id="github" name="socialLinks.github" value="<%= resume.socialLinks.github %>">
+    
+    <label for="linkedin">LinkedIn:</label>
+    <input type="url" id="linkedin" name="socialLinks.linkedin" value="<%= resume.socialLinks.linkedin %>">
+    
+    <label for="portfolio">Portfolio:</label>
+    <input type="url" id="portfolio" name="socialLinks.portfolio" value="<%= resume.socialLinks.portfolio %>">
+    
+    <label for="instagram">Instagram:</label>
+    <input type="url" id="instagram" name="socialLinks.instagram" value="<%= resume.socialLinks.instagram %>">
+
+    <h2>Hobbies</h2>
+    <label for="hobbies">Hobbies:</label>
+    <input type="text" id="hobbies" name="hobbies" value="<%= resume.hobbies.join(', ') %>">
+
+    <button type="submit" class="btn btn-primary">Update Resume</button>
+</form>
+
+<%- include('partials/footer') %>

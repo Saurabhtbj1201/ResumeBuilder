@@ -324,7 +324,7 @@ router.get('/resume/:id/edit', async (req, res) => {
         if (!resume) {
             return res.status(404).send('Resume not found');
         }
-        res.render('resume-edit', { resume }); // Pass resume data to the view
+        res.render('resume-edit', { resume }); // Ensure the view name matches the file name
     } catch (error) {
         console.error('Error fetching resume for editing:', error);
         res.status(500).send('Error fetching resume for editing');

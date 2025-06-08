@@ -12,9 +12,25 @@ router.get('/', (req, res) => {
     res.render('index');
 });
 
-// Serve the resume form page
-router.get('/build', (req, res) => {
-    res.render('form');
+// Serve the resume form page (with optional search)
+router.get('/build', async (req, res) => {
+    const { searchName, searchEmail, dobDay, dobMonth, dobYear } = req.query;
+    let resumeToEdit = null;
+    if (searchName && searchEmail && dobDay && dobMonth && dobYear) {
+        // build a Date from the three parts
+        const d = new Date(
+            parseInt(dobYear),
+            parseInt(dobMonth) - 1,
+            parseInt(dobDay)
+        );
+        // find exact match on name, email, dob
+        resumeToEdit = await Resume.findOne({
+            'basicDetails.fullName': searchName,
+            'contact.email': searchEmail,
+            'basicDetails.dob': d
+        });
+    }
+    res.render('form', { resumeToEdit });
 });
 
 // Handle resume form submission

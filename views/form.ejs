@@ -1,192 +1,313 @@
 <%- include('partials/header', { title: 'Build Your Resume' }) %>
+<% if (typeof resumeToEdit === 'undefined') { var resumeToEdit = null; } %>
 
+<!-- Search Existing Resume -->
+<fieldset style="border:1px solid #ccc; padding:1rem; margin-bottom:2rem;">
+  <legend>Search Existing Resume</legend>
+  <form action="/build" method="GET">
+    <div>
+      <label for="searchName">Full Name:</label>
+      <input 
+        type="text" 
+        id="searchName" 
+        name="searchName" 
+        required
+        value="<%= resumeToEdit ? resumeToEdit.basicDetails.fullName : '' %>"
+      >
+    </div>
+    <div>
+      <label for="searchEmail">Email:</label>
+      <input 
+        type="email" 
+        id="searchEmail" 
+        name="searchEmail" 
+        required
+        value="<%= resumeToEdit ? resumeToEdit.contact.email : '' %>"
+      >
+    </div>
+    <div style="display:flex; gap:10px;">
+      <select name="dobDay" required>
+        <option value="">Day</option>
+        <% for(let i=1; i<=31; i++) { %>
+          <option 
+            value="<%= i %>" 
+            <%= resumeToEdit && new Date(resumeToEdit.basicDetails.dob).getDate()===i ? 'selected':'' %>
+          ><%= i %></option>
+        <% } %>
+      </select>
+      <select name="dobMonth" required>
+        <option value="">Month</option>
+        <% const mons=["January","February","March","April","May","June","July","August","September","October","November","December"]; %>
+        <% mons.forEach((m,idx)=>{ %>
+          <option 
+            value="<%= idx+1 %>" 
+            <%= resumeToEdit && new Date(resumeToEdit.basicDetails.dob).getMonth()===idx ? 'selected':'' %>
+          ><%= m %></option>
+        <% }); %>
+      </select>
+      <select name="dobYear" required>
+        <option value="">Year</option>
+        <% const cy=new Date().getFullYear(); %>
+        <% for(let y=cy; y>=cy-100; y--) { %>
+          <option 
+            value="<%= y %>" 
+            <%= resumeToEdit && new Date(resumeToEdit.basicDetails.dob).getFullYear()===y ? 'selected':'' %>
+          ><%= y %></option>
+        <% } %>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary">Search</button>
+  </form>
+</fieldset>
+
+<!-- Main resume‐build form -->
 <h1>Enter Your Resume Details</h1>
 <form action="/submit-resume" method="POST" class="resume-form">
-    
-    <h2>Basic Details</h2>
-    <div>
-        <label for="fullName">Full Name:</label>
-        <input type="text" id="fullName" name="fullName" required>
-    </div>
-    <div>
-        <label>Date of Birth:</label>
-        <div style="display: flex; gap: 10px;">
-            <select id="dobDay" name="dobDay" required>
-                <option value="">Day</option>
-                <% for(let i = 1; i <= 31; i++) { %>
-                    <option value="<%= i %>"><%= i %></option>
-                <% } %>
-            </select>
-            <select id="dobMonth" name="dobMonth" required>
-                <option value="">Month</option>
-                <% const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; %>
-                <% months.forEach((month, index) => { %>
-                    <option value="<%= index + 1 %>"><%= month %></option>
-                <% }); %>
-            </select>
-            <select id="dobYear" name="dobYear" required>
-                <option value="">Year</option>
-                <% const currentYear = new Date().getFullYear(); %>
-                <% for(let i = currentYear; i >= currentYear - 100; i--) { %>
-                    <option value="<%= i %>"><%= i %></option>
-                <% } %>
-            </select>
-        </div>
-    </div>
-    <div>
-        <label for="currentJobTitle">Current Job Title (if any):</label>
-        <input type="text" id="currentJobTitle" name="currentJobTitle">
-    </div>
-    <div>
-        <label for="currentCompany">Current Company (if any):</label>
-        <input type="text" id="currentCompany" name="currentCompany">
-    </div>
+  <!-- Basic Details, Contact, Summary -->
+  <h2>Basic Details</h2>
+  <div>
+      <label for="fullName">Full Name:</label>
+      <input 
+        type="text" 
+        id="fullName" 
+        name="fullName" 
+        required
+        value="<%= resumeToEdit ? resumeToEdit.basicDetails.fullName : '' %>"
+      >
+  </div>
+  <div>
+      <label>Date of Birth:</label>
+      <div style="display: flex; gap: 10px;">
+          <select id="dobDay" name="dobDay" required>
+              <option value="">Day</option>
+              <% for(let i = 1; i <= 31; i++) { %>
+                  <option value="<%= i %>" <%= resumeToEdit && new Date(resumeToEdit.basicDetails.dob).getDate()===i ? 'selected':'' %>><%= i %></option>
+              <% } %>
+          </select>
+          <select id="dobMonth" name="dobMonth" required>
+              <option value="">Month</option>
+              <% const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; %>
+              <% months.forEach((month, index) => { %>
+                  <option value="<%= index + 1 %>" <%= resumeToEdit && new Date(resumeToEdit.basicDetails.dob).getMonth()===index ? 'selected':'' %>><%= month %></option>
+              <% }); %>
+          </select>
+          <select id="dobYear" name="dobYear" required>
+              <option value="">Year</option>
+              <% const currentYear = new Date().getFullYear(); %>
+              <% for(let i = currentYear; i >= currentYear - 100; i--) { %>
+                  <option value="<%= i %>" <%= resumeToEdit && new Date(resumeToEdit.basicDetails.dob).getFullYear()===i ? 'selected':'' %>><%= i %></option>
+              <% } %>
+          </select>
+      </div>
+  </div>
+  <div>
+      <label for="currentJobTitle">Current Job Title:</label>
+      <input 
+        type="text" 
+        id="currentJobTitle" 
+        name="currentJobTitle"
+        value="<%= resumeToEdit ? resumeToEdit.basicDetails.currentJobTitle : '' %>"
+      >
+  </div>
+  <div>
+      <label for="currentCompany">Current Company:</label>
+      <input 
+        type="text" 
+        id="currentCompany" 
+        name="currentCompany"
+        value="<%= resumeToEdit ? resumeToEdit.basicDetails.currentCompany : '' %>"
+      >
+  </div>
 
-    <h2>Contact Information</h2>
-    <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    <div>
-        <label for="phone">Phone:</label>
-        <input type="tel" id="phone" name="phone" required>
-    </div>
+  <h2>Contact Information</h2>
+  <div>
+      <label for="email">Email:</label>
+      <input 
+        type="email" 
+        id="email" 
+        name="email" 
+        required
+        value="<%= resumeToEdit ? resumeToEdit.contact.email : '' %>"
+      >
+  </div>
+  <div>
+      <label for="phone">Phone:</label>
+      <input 
+        type="tel" 
+        id="phone" 
+        name="phone" 
+        value="<%= resumeToEdit ? resumeToEdit.contact.phone : '' %>"
+      >
+  </div>
 
-    <h2>Summary</h2>
-    <div>
-        <label for="summary">Professional Summary:</label>
-        <textarea id="summary" name="summary" rows="4"></textarea>
-    </div>
+  <h2>Summary</h2>
+  <div>
+      <label for="summary">Professional Summary:</label>
+      <textarea id="summary" name="summary" rows="4"><%= resumeToEdit ? resumeToEdit.summary : '' %></textarea>
+  </div>
 
-    <h2>Experience</h2>
-    <div id="experienceContainer">
-        <div class="experience-entry">
-            <h4>Experience Entry 1</h4>
-            <div>
-                <label for="expCompany">Company:</label>
-                <input type="text" name="expCompany[]" required>
-            </div>
-            <div>
-                <label for="expRole">Role:</label>
-                <input type="text" name="expRole[]" required>
-            </div>
-            <div>
-                <label for="expDuration">Duration (e.g., Jan 2020 - Present):</label>
-                <input type="text" name="expDuration[]" required>
-            </div>
-            <div>
-                <label for="expDescription">Description:</label>
-                <textarea name="expDescription[]" rows="3" required></textarea>
-            </div>
-        </div>
+  <!-- Experience -->
+  <h2>Experience</h2>
+  <div id="experienceContainer">
+    <% const exps = resumeToEdit && resumeToEdit.experience && resumeToEdit.experience.length
+                  ? resumeToEdit.experience
+                  : [{}]; %>
+    <% exps.forEach((exp, idx) => { %>
+    <div class="experience-entry">
+      <h4>Experience Entry <%= idx + 1 %></h4>
+      <div>
+        <label>Company:</label>
+        <input type="text" name="expCompany[]" required value="<%= exp.company || '' %>">
+      </div>
+      <div>
+        <label>Role:</label>
+        <input type="text" name="expRole[]" required value="<%= exp.role || '' %>">
+      </div>
+      <div>
+        <label>Duration:</label>
+        <input type="text" name="expDuration[]" required value="<%= exp.duration || '' %>">
+      </div>
+      <div>
+        <label>Description:</label>
+        <textarea name="expDescription[]" rows="3" required><%= exp.description || '' %></textarea>
+      </div>
     </div>
-    <button type="button" id="addExperienceBtn" class="btn btn-secondary">Add More Experience</button>
-    
-    <h2>Projects</h2>
-    <div id="projectsContainer">
-        <div class="project-entry">
-            <h4>Project Entry 1</h4>
-            <div>
-                <label for="projTitle">Project Title:</label>
-                <input type="text" name="projTitle[]">
-            </div>
-            <div>
-                <label for="projTechStack">Tech Stack (comma-separated):</label>
-                <input type="text" name="projTechStack[]">
-            </div>
-            <div>
-                <label for="projDescription">Description:</label>
-                <textarea name="projDescription[]" rows="3"></textarea>
-            </div>
-            <div>
-                <label for="projStatus">Status (e.g., Completed, In Progress):</label>
-                <input type="text" name="projStatus[]">
-            </div>
-        </div>
-    </div>
-    <button type="button" id="addProjectBtn" class="btn btn-secondary">Add More Projects</button>
+    <% }); %>
+  </div>
+  <button type="button" id="addExperienceBtn" class="btn btn-secondary">Add More Experience</button>
 
-    <h2>Skills</h2>
-    <div>
-        <label for="skills">Skills (comma-separated, e.g., JavaScript, Python, Teamwork):</label>
-        <input type="text" id="skills" name="skills">
+  <!-- Projects -->
+  <h2>Projects</h2>
+  <div id="projectsContainer">
+    <% const projs = resumeToEdit && resumeToEdit.projects && resumeToEdit.projects.length
+                  ? resumeToEdit.projects
+                  : [{}]; %>
+    <% projs.forEach((proj, idx) => { %>
+    <div class="project-entry">
+      <h4>Project Entry <%= idx + 1 %></h4>
+      <div>
+        <label>Title:</label>
+        <input type="text" name="projTitle[]" value="<%= proj.title || '' %>">
+      </div>
+      <div>
+        <label>Tech Stack:</label>
+        <input type="text" name="projTechStack[]" value="<%= proj.techStack ? proj.techStack.join(', ') : '' %>">
+      </div>
+      <div>
+        <label>Description:</label>
+        <textarea name="projDescription[]" rows="3"><%= proj.description || '' %></textarea>
+      </div>
+      <div>
+        <label>Status:</label>
+        <input type="text" name="projStatus[]" value="<%= proj.status || '' %>">
+      </div>
     </div>
+    <% }); %>
+  </div>
+  <button type="button" id="addProjectBtn" class="btn btn-secondary">Add More Projects</button>
 
-    <h2>Education</h2>
-    <div id="educationContainer">
-        <div class="education-entry">
-            <h4>Education Entry 1</h4>
-            <div>
-                <label for="eduDegree">Degree:</label>
-                <input type="text" name="eduDegree[]">
-            </div>
-            <div>
-                <label for="eduInstitution">Institution:</label>
-                <input type="text" name="eduInstitution[]">
-            </div>
-            <div>
-                <label for="eduYear">Year (e.g., 2020 or 2016-2020):</label>
-                <input type="text" name="eduYear[]">
-            </div>
-            <div>
-                <label for="eduCgpa">CGPA/Percentage:</label>
-                <input type="text" name="eduCgpa[]">
-            </div>
-        </div>
-    </div>
-    <button type="button" id="addEducationBtn" class="btn btn-secondary">Add More Education</button>
+  <!-- Skills -->
+  <h2>Skills</h2>
+  <div>
+    <label>Skills:</label>
+    <input type="text" id="skills" name="skills"
+      value="<%= resumeToEdit && resumeToEdit.skills ? resumeToEdit.skills.join(', ') : '' %>">
+  </div>
 
-    <h2>Address</h2>
-    <div>
-        <label for="addressLine1">Address Line 1:</label>
-        <input type="text" id="addressLine1" name="addressLine1">
+  <!-- Education -->
+  <h2>Education</h2>
+  <div id="educationContainer">
+    <% const edus = resumeToEdit && resumeToEdit.education && resumeToEdit.education.length
+                  ? resumeToEdit.education
+                  : [{}]; %>
+    <% edus.forEach((edu, idx) => { %>
+    <div class="education-entry">
+      <h4>Education Entry <%= idx + 1 %></h4>
+      <div>
+        <label>Degree:</label>
+        <input type="text" name="eduDegree[]" value="<%= edu.degree || '' %>">
+      </div>
+      <div>
+        <label>Institution:</label>
+        <input type="text" name="eduInstitution[]" value="<%= edu.institution || '' %>">
+      </div>
+      <div>
+        <label>Year:</label>
+        <input type="text" name="eduYear[]" value="<%= edu.year || '' %>">
+      </div>
+      <div>
+        <label>CGPA/Percentage:</label>
+        <input type="text" name="eduCgpa[]" value="<%= edu.cgpaOrPercentage || '' %>">
+      </div>
     </div>
-    <div>
-        <label for="city">City:</label>
-        <input type="text" id="city" name="city">
-    </div>
-    <div>
-        <label for="district">District:</label>
-        <input type="text" id="district" name="district">
-    </div>
-    <div>
-        <label for="state">State:</label>
-        <input type="text" id="state" name="state">
-    </div>
-    <div>
-        <label for="country">Country:</label>
-        <input type="text" id="country" name="country">
-    </div>
-    <div>
-        <label for="postalCode">Postal Code:</label>
-        <input type="text" id="postalCode" name="postalCode">
-    </div>
+    <% }); %>
+  </div>
+  <button type="button" id="addEducationBtn" class="btn btn-secondary">Add More Education</button>
 
-    <h2>Social Links (Optional)</h2>
-    <div>
-        <label for="github">GitHub URL:</label>
-        <input type="url" id="github" name="github" placeholder="https://github.com/yourusername">
-    </div>
-    <div>
-        <label for="linkedin">LinkedIn URL:</label>
-        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/yourprofile">
-    </div>
-    <div>
-        <label for="portfolio">Portfolio URL:</label>
-        <input type="url" id="portfolio" name="portfolio" placeholder="https://yourportfolio.com">
-    </div>
-    <div>
-        <label for="instagram">Instagram URL:</label>
-        <input type="url" id="instagram" name="instagram" placeholder="https://instagram.com/yourusername">
-    </div>
+  <!-- Address -->
+  <h2>Address</h2>
+  <div>
+    <label>Address Line 1:</label>
+    <input type="text" id="addressLine1" name="addressLine1"
+      value="<%= resumeToEdit && resumeToEdit.address ? resumeToEdit.address.addressLine1 : '' %>">
+  </div>
+  <div>
+    <label>City:</label>
+    <input type="text" id="city" name="city"
+      value="<%= resumeToEdit && resumeToEdit.address ? resumeToEdit.address.city : '' %>">
+  </div>
+  <div>
+    <label>District:</label>
+    <input type="text" id="district" name="district"
+      value="<%= resumeToEdit && resumeToEdit.address ? resumeToEdit.address.district : '' %>">
+  </div>
+  <div>
+    <label>State:</label>
+    <input type="text" id="state" name="state"
+      value="<%= resumeToEdit && resumeToEdit.address ? resumeToEdit.address.state : '' %>">
+  </div>
+  <div>
+    <label>Country:</label>
+    <input type="text" id="country" name="country"
+      value="<%= resumeToEdit && resumeToEdit.address ? resumeToEdit.address.country : '' %>">
+  </div>
+  <div>
+    <label>Postal Code:</label>
+    <input type="text" id="postalCode" name="postalCode"
+      value="<%= resumeToEdit && resumeToEdit.address ? resumeToEdit.address.postalCode : '' %>">
+  </div>
 
-    <h2>Hobbies (Optional)</h2>
-    <div>
-        <label for="hobbies">Hobbies (comma-separated):</label>
-        <input type="text" id="hobbies" name="hobbies">
-    </div>
+  <!-- Social Links -->
+  <h2>Social Links</h2>
+  <div>
+    <label>GitHub:</label>
+    <input type="url" id="github" name="github"
+      value="<%= resumeToEdit && resumeToEdit.socialLinks ? resumeToEdit.socialLinks.github : '' %>">
+  </div>
+  <div>
+    <label>LinkedIn:</label>
+    <input type="url" id="linkedin" name="linkedin"
+      value="<%= resumeToEdit && resumeToEdit.socialLinks ? resumeToEdit.socialLinks.linkedin : '' %>">
+  </div>
+  <div>
+    <label>Portfolio:</label>
+    <input type="url" id="portfolio" name="portfolio"
+      value="<%= resumeToEdit && resumeToEdit.socialLinks ? resumeToEdit.socialLinks.portfolio : '' %>">
+  </div>
+  <div>
+    <label>Instagram:</label>
+    <input type="url" id="instagram" name="instagram"
+      value="<%= resumeToEdit && resumeToEdit.socialLinks ? resumeToEdit.socialLinks.instagram : '' %>">
+  </div>
 
-    <button type="submit" class="btn btn-primary">Submit Resume</button>
+  <!-- Hobbies -->
+  <h2>Hobbies</h2>
+  <div>
+    <label>Hobbies:</label>
+    <input type="text" id="hobbies" name="hobbies"
+      value="<%= resumeToEdit && resumeToEdit.hobbies ? resumeToEdit.hobbies.join(', ') : '' %>">
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit Resume</button>
 </form>
-
 <%- include('partials/footer') %>

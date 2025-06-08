@@ -317,20 +317,35 @@ router.get('/resume/:id/download', async (req, res) => {
     }
 });
 
-// Serve the resume form page with pre-filled data for editing
+// Fetch resume details for editing
 router.get('/resume/:id/edit', async (req, res) => {
     try {
         const resume = await Resume.findById(req.params.id);
         if (!resume) {
             return res.status(404).send('Resume not found');
         }
-        // Render the form with the resume data
-        res.render('form', { resume: resume });
+        res.render('resume-edit', { resume }); // Pass resume data to the view
     } catch (error) {
-        console.error('Error fetching resume for edit:', error);
-        res.status(500).send('Error fetching resume for edit');
+        console.error('Error fetching resume for editing:', error);
+        res.status(500).send('Error fetching resume for editing');
     }
 });
+
+// Update resume details
+router.post('/resume/:id/update', async (req, res) => {
+    try {
+        const updatedData = req.body;
+        const resume = await Resume.findByIdAndUpdate(req.params.id, updatedData, { new: true, runValidators: true });
+        if (!resume) {
+            return res.status(404).send('Resume not found');
+        }
+        res.redirect(`/resume/${resume._id}`);
+    } catch (error) {
+        console.error('Error updating resume:', error);
+        res.status(500).send('Error updating resume');
+    }
+});
+
 
 
 module.exports = router;

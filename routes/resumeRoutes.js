@@ -23,11 +23,15 @@ router.get('/build', async (req, res) => {
             parseInt(dobMonth) - 1,
             parseInt(dobDay)
         );
-        // find exact match on name, email, dob
+        // define start/end of that day to avoid millisecond mismatches
+        const start = new Date(d); start.setHours(0,0,0,0);
+        const end   = new Date(d); end.setHours(23,59,59,999);
+
+        // case-insensitive fullName and exact email + dob range
         resumeToEdit = await Resume.findOne({
-            'basicDetails.fullName': searchName,
-            'contact.email': searchEmail,
-            'basicDetails.dob': d
+            'basicDetails.fullName':  new RegExp('^' + searchName.trim() + '$', 'i'),
+            'contact.email':          searchEmail.trim().toLowerCase(),
+            'basicDetails.dob':       { $gte: start, $lte: end }
         });
     }
     res.render('form', { resumeToEdit });
